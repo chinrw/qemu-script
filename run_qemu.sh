@@ -46,7 +46,7 @@ host() {
 	cmdline+=" mitigations=off"
 
 	local net
-	if [ "$SSH" = "y" ]; then
+	if [[ "$SSH" == "y" ]]; then
 		net+=" -netdev user,id=virtual,hostfwd=tcp:127.0.0.1:52222-:22"
 	else
 		net+=" -netdev user,id=virtual"
@@ -54,8 +54,8 @@ host() {
 	net+=" -device virtio-net-pci,netdev=virtual"
 
 	local opts
-	[ "$MODULES" = "y" ] && opts+=" -m"
-	[ "$SSH" = "y" ] && opts+=" -s"
+	[[ "$MODULES" == "y" ]] && opts+=" -m"
+	[[ "$SSH" == "y" ]] && opts+=" -s"
 
 	cmdline+=" rootfstype=9p"
 	cmdline+=" rootflags=version=9p2000.L,trans=virtio,msize=104857600,access=any"
@@ -151,7 +151,7 @@ guest() {
 	mount -n -t tmpfs tmpfs /boot
 	ln -s $KERNEL/.config /boot/config-$kver
 
-	if [ "$MODULES" = "y" ]; then
+	if [[ "$MODULES" == "y" ]]; then
 		if [ ! -e $KERNEL/modules.dep.bin ]; then
 			say modules.dep.bin not found, running depmod, may take awhile
 			depmod -a 2>/dev/null
@@ -199,7 +199,7 @@ guest() {
 	usermod -R /mnt -d "$HOME" root
 	umount /mnt
 
-	if [ "$SSH" = "y" ]; then
+	if [[ "$SSH" == "y" ]]; then
 		say setup sshd: '$ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@localhost -p 52222'
 		mask-dir () {
 			touch "$1"
