@@ -68,7 +68,7 @@ host() {
 		-nodefaults \
 		-no-reboot \
 		-machine accel=kvm:tcg \
-		-watchdog i6300esb \
+		-device i6300esb \
 		-device virtio-rng-pci \
 		-cpu host \
 		-smp $NRCPU \
