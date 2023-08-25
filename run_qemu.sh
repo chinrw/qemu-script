@@ -469,7 +469,7 @@ EOF
 
 		echo "" >/etc/group
 
-		cat $(HOME)/.ssh/id_rsa.pub >>/etc/ssh/authorized_keys
+		cat $HOME/.ssh/id_rsa.pub >>/etc/ssh/authorized_keys
 
 		ssh-keygen -A
 
