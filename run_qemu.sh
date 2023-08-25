@@ -5,8 +5,8 @@
 # {{{
 SSH_PORT=${SSH_PORT:-52222}
 
-NRCPU=${NRCPU:-16}
-MEMORY=${MEMORY:-15872}
+NRCPU=${NRCPU:-2}
+MEMORY=${MEMORY:-4096}
 TAP_QUEUES=${TAP_QUEUES:-$NRCPU}
 TAP_MQ=${TAP_MQ:-true}
 
@@ -84,7 +84,7 @@ host() {
   local cmdline
 
   local fs
-  fs+=" -fsdev local,id=vfs1,path=$DIR_ROOT,security_model=none,readonly=on"
+  fs+=" -fsdev local,multidevs=remap,id=vfs1,path=$DIR_ROOT,security_model=none,readonly=on"
   fs+=" -fsdev local,id=vfs2,path=$(pwd),security_model=none"
   fs+=" -fsdev local,id=vfs3,path=$DIR_EXPORT,security_model=none"
   fs+=" -fsdev local,id=vfs4,path=$DIR_Q,security_model=none,readonly=on"
@@ -634,13 +634,6 @@ else
       ARCH=x86_64
     elif file $kernel | grep -q ARM64; then
       ARCH=arm64
-    fi
-  fi
-
-  if [[ ! "$ARCH" = "$(arch)" ]]; then
-    if [[ "$DIR_ROOT" = "/" ]]; then
-      DIR_ROOT="$HOME/src/$(arch)"
-      say "$ARCH on $(arch), using $DIR_ROOT rootfs"
     fi
   fi
 
