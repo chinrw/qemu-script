@@ -159,10 +159,10 @@ host() {
 
 	local accel
 	if [[ "$(arch)" = "${ARCH}" ]]; then
-    if [[ -f /dev/kvm ]]; then
-		accel+=" -machine accel=kvm:tcg"
-		accel+=" -enable-kvm"
-    fi
+		if [[ -f /dev/kvm ]]; then
+			accel+=" -machine accel=kvm:tcg"
+			accel+=" -enable-kvm"
+		fi
 	fi
 
 	fixup host
@@ -172,7 +172,11 @@ host() {
 	case "${ARCH}" in
 	x86_64)
 		if [[ "$(arch)" = "${ARCH}" ]]; then
-			cpu="host"
+			if [[ -f /dev/kvm ]]; then
+				cpu="host"
+			else
+				cpu="max"
+			fi
 		fi
 		;;
 	arm64)
