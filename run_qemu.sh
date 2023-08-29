@@ -10,8 +10,9 @@ MEMORY=${MEMORY:-4096}
 TAP_QUEUES=${TAP_QUEUES:-$NRCPU}
 TAP_MQ=${TAP_MQ:-true}
 
-V4_ADDR=${V4_ADDR:-}     # dhcp by default
-V4_PREFIX=${V4_PREFIX:-} # dhcp by default
+V4_ADDR=${V4_ADDR:-"10.0.2.15"} # dhcp by default
+V4_PREFIX=${V4_PREFIX:-"24"}    # dhcp by default
+V4_ROUTE=${V4_ROUTE:-"10.0.2.2"}
 V6_ADDR=${V6_ADDR:-"2002:ad6:c2c4::1"}
 V6_PREFIX=${V6_PREFIX:-128}
 
@@ -159,7 +160,7 @@ host() {
 
 	local accel
 	if [[ "$(arch)" = "${ARCH}" ]]; then
-		if [[ -f /dev/kvm ]]; then
+		if [[ -e /dev/kvm ]]; then
 			accel+=" -machine accel=kvm:tcg"
 			accel+=" -enable-kvm"
 		fi
@@ -172,7 +173,7 @@ host() {
 	case "${ARCH}" in
 	x86_64)
 		if [[ "$(arch)" = "${ARCH}" ]]; then
-			if [[ -f /dev/kvm ]]; then
+			if [[ -e /dev/kvm ]]; then
 				cpu="host"
 			else
 				cpu="max"
@@ -183,7 +184,7 @@ host() {
 		if [[ "$(arch)" = "${ARCH}" ]]; then
 			cpu="host"
 		else
-			accel+=" -machine virt"
+			accel+=" -machine virt -accel tcg "
 			cpu="max"
 		fi
 		qemu_flavor=aarch64
@@ -390,7 +391,19 @@ guest() {
 
 				append_to_hosts "$v4_addr"
 			else
-				say "busybox is found, but no /etc/udhcpc/default.script, skipping udhcpc"
+				say "busybox is found, but no /etc/udhcpc/default.script, use assigned ip address"
+				if [[ ! -z "$V4_ADDR" ]]; then
+					mask-dir /etc/resolvconf/run
+					mkdir -p /run/resolvconf
+					echo "nameserver 8.8.8.8" >/run/resolvconf/resolv.conf
+
+					local dev=$(ls -d /sys/bus/virtio/drivers/virtio_net/virtio* | sort -g | head -n1)
+					local iface=$(ls $dev/net)
+					ip link set dev $iface up
+					ip -4 addr add "${V4_ADDR}/${V4_PREFIX}" dev $iface
+					ip -4 route add default via $V4_ROUTE
+					append_to_hosts "$V4_ADDR"
+				fi
 			fi
 		else
 			say "busybox is not found, skipping udhcpc"
